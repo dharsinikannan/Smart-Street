@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS spaces (
 CREATE TABLE IF NOT EXISTS space_requests (
   request_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vendor_id UUID NOT NULL REFERENCES vendors(vendor_id) ON DELETE CASCADE,
-  space_id UUID NOT NULL REFERENCES spaces(space_id) ON DELETE CASCADE,
+  space_id UUID REFERENCES spaces(space_id) ON DELETE CASCADE,
   center GEOGRAPHY(POINT, 4326) NOT NULL,
   max_width FLOAT8 NOT NULL,       -- meters
   max_length FLOAT8 NOT NULL,      -- meters

@@ -39,7 +39,7 @@ export default function Login() {
 
       <div className="relative w-[90%] md:w-full max-w-md bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-2xl rounded-2xl p-6 md:p-8 border border-white/40 dark:border-white/10 z-10 transition-all hover:shadow-cyan-500/20">
         <div className="text-center space-y-3 mb-8">
-          <Link to="/" className="inline-block group mx-auto w-16 h-16 bg-gradient-to-tr from-teal-500 to-cyan-600 rounded-full flex items-center justify-center shadow-lg shadow-cyan-500/30 mb-4 hover:scale-105 transition-transform">
+          <Link to="/" className="inline-flex shrink-0 aspect-square group mx-auto w-16 h-16 bg-gradient-to-tr from-teal-500 to-cyan-600 rounded-full items-center justify-center shadow-lg shadow-cyan-500/30 mb-4 hover:scale-105 transition-transform">
              <BuildingStorefrontIcon className="w-9 h-9 text-white" />
           </Link>
           <Link to="/" className="block">

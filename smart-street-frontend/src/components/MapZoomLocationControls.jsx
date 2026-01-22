@@ -27,7 +27,7 @@ export default function MapZoomLocationControls() {
 
   return (
     <div 
-      className="absolute bottom-6 right-4 z-[1000] flex flex-col gap-2"
+      className="absolute top-24 right-4 z-[1000] flex flex-col gap-2"
       onDoubleClick={disablePropagation}
       onMouseDown={disablePropagation}
       onClick={disablePropagation}

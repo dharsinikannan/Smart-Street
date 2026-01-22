@@ -6,7 +6,8 @@ import { useMap } from "react-leaflet";
 export default function MapSearchControl({
   placeholder = "Search places",
   onSelect, // optional callback (lat, lng)
-  className = ""
+  className = "",
+  externalQuery = ""
 }) {
   const map = useMap();
   const [query, setQuery] = useState("");
@@ -14,6 +15,10 @@ export default function MapSearchControl({
   const [error, setError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const debounceRef = useRef(null);
+
+  useEffect(() => {
+    if (externalQuery) setQuery(externalQuery);
+  }, [externalQuery]);
 
   // Fetch suggestions with debounce
   useEffect(() => {
@@ -71,14 +76,14 @@ export default function MapSearchControl({
     <div className={`z-[1200] w-[260px] md:w-[300px] ${className}`}>
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-2 bg-white/95 backdrop-blur rounded-lg shadow border border-slate-200 px-3 py-2" // Keep inner styling
+        className="flex items-center gap-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur rounded-lg shadow border border-slate-200 dark:border-slate-800 px-3 py-2" // Keep inner styling
       >
         <input
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="w-full text-sm px-2 py-1 rounded border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full text-sm px-2 py-1 rounded border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
@@ -90,12 +95,12 @@ export default function MapSearchControl({
       </form>
 
       {suggestions.length > 0 && (
-        <div className="mt-1 max-h-64 overflow-auto rounded-lg border border-slate-200 bg-white shadow">
+        <div className="mt-1 max-h-64 overflow-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow">
           {suggestions.map((s, idx) => (
             <button
               key={`${s.label}-${idx}`}
               onClick={() => flyTo(s.lat, s.lon, s.label)}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200"
             >
               {s.label}
             </button>

@@ -182,12 +182,25 @@ const listAuditLogs = async () => {
   return { logs };
 };
 
+const getDashboardStats = async () => {
+  const stats = await adminRepository.getDashboardStats();
+  return { stats };
+};
+
+const listVendors = async () => {
+  const vendors = await adminRepository.listVendors();
+  return { vendors };
+};
+
 module.exports = {
   listPendingRequests,
   listHistoryRequests,
   approveRequest,
   rejectRequest,
   listPermits,
-  listAuditLogs
+  listPermits,
+  listAuditLogs,
+  getDashboardStats,
+  listVendors
 };
 

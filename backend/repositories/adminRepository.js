@@ -280,6 +280,39 @@ const getVendorUserId = async vendorId => {
   return result.rows[0]?.user_id || null;
 };
 
+const getDashboardStats = async () => {
+  const result = await db.query(`
+    SELECT
+      (SELECT COUNT(*) FROM vendors) AS total_vendors,
+      (SELECT COUNT(*) FROM spaces) AS total_spaces,
+      (SELECT COUNT(*) FROM permits WHERE status = 'VALID') AS active_permits,
+      (SELECT COUNT(*) FROM permits) AS total_permits,
+      (SELECT COUNT(*) FROM space_requests WHERE status = 'PENDING') AS pending_requests
+  `);
+  return result.rows[0];
+};
+
+const listVendors = async () => {
+  const result = await db.query(`
+    SELECT 
+      v.vendor_id,
+      v.business_name,
+      v.category,
+      u.name AS vendor_name,
+      u.email,
+      u.phone AS phone_number,
+      v.created_at,
+      (SELECT COUNT(*) FROM space_requests sr WHERE sr.vendor_id = v.vendor_id) AS total_requests,
+      (SELECT COUNT(*) FROM permits p 
+       JOIN space_requests sr ON sr.request_id = p.request_id 
+       WHERE sr.vendor_id = v.vendor_id AND p.status = 'VALID') AS active_permits
+    FROM vendors v
+    JOIN users u ON u.user_id = v.user_id
+    ORDER BY v.created_at DESC
+  `);
+  return result.rows;
+};
+
 module.exports = {
   listPendingRequests,
   listAllRequests,
@@ -289,5 +322,7 @@ module.exports = {
   updateRequestStatusTx,
   createPermitTx,
   listPermits,
-  getVendorUserId
+  getVendorUserId,
+  getDashboardStats,
+  listVendors
 };

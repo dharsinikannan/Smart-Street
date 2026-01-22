@@ -66,11 +66,32 @@ const listAuditLogs = async (req, res, next) => {
   }
 };
 
+const getStats = async (req, res, next) => {
+  try {
+    const result = await adminService.getDashboardStats();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const listVendors = async (req, res, next) => {
+  try {
+    const result = await adminService.listVendors();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   listRequests,
   approve,
   reject,
   listPermits,
-  listAuditLogs
+  listPermits,
+  listAuditLogs,
+  getStats,
+  listVendors
 };
 

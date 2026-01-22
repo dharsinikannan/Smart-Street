@@ -11,10 +11,10 @@ const notificationIcons = {
 };
 
 const notificationColors = {
-  REQUEST_APPROVED: "text-green-600 bg-green-100",
-  REQUEST_REJECTED: "text-red-600 bg-red-100",
-  PERMIT_ISSUED: "text-blue-600 bg-blue-100",
-  PERMIT_REVOKED: "text-red-600 bg-red-100"
+  REQUEST_APPROVED: "text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30",
+  REQUEST_REJECTED: "text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30",
+  PERMIT_ISSUED: "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30",
+  PERMIT_REVOKED: "text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30"
 };
 
 export default function NotificationModal({ isOpen, onClose }) {
@@ -92,13 +92,13 @@ export default function NotificationModal({ isOpen, onClose }) {
                   ) : (
                     notifications.map((notification) => {
                       const Icon = notificationIcons[notification.type] || BellIcon;
-                      const colorClass = notificationColors[notification.type] || "text-slate-600 bg-slate-100";
+                      const colorClass = notificationColors[notification.type] || "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800";
 
                       return (
                         <div
                           key={notification.notification_id}
                           className={`p-3 rounded-lg border ${
-                            notification.is_read ? "bg-slate-50 border-slate-200" : "bg-blue-50 border-blue-200"
+                            notification.is_read ? "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800" : "bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-900/30"
                           }`}
                         >
                           <div className="flex items-start gap-3">
@@ -106,13 +106,13 @@ export default function NotificationModal({ isOpen, onClose }) {
                               <Icon className="h-5 w-5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-slate-900 mb-1">
+                              <p className="text-sm font-semibold text-slate-900 dark:text-slate-200 mb-1">
                                 {notification.title}
                               </p>
-                              <p className="text-sm text-slate-600 mb-2">
+                              <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
                                 {notification.message}
                               </p>
-                              <p className="text-xs text-slate-500">
+                              <p className="text-xs text-slate-500 dark:text-slate-500">
                                 {new Date(notification.created_at).toLocaleString()}
                               </p>
                             </div>

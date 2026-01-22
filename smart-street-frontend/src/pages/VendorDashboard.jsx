@@ -12,6 +12,8 @@ import NotificationBell from "../components/NotificationBell.jsx";
 import NotificationModal from "../components/NotificationModal.jsx";
 import PermitQRModal from "../components/PermitQRModal.jsx";
 import RequestDetailModal from "../components/RequestDetailModal.jsx";
+import VoiceAssistant from "../components/VoiceAssistant.jsx";
+import { parseBookingIntent } from "../utils/voiceUtils.js";
 import ThemeToggle from "../components/ThemeToggle.jsx";
 
 const defaultCenter = [12.9716, 77.5946];
@@ -78,6 +80,17 @@ const MapZoomToSpace = ({ lat, lng, radius }) => {
   return null;
 };
 
+// New Component: Fly to specific coordinates on command
+const MapFlyTo = ({ coords }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (coords && coords.length === 2) {
+      map.flyTo(coords, 16, { animate: true, duration: 1.5 });
+    }
+  }, [coords, map]);
+  return null;
+};
+
 const dimsFromRadius = radius => {
   // We store width/length in the API, but UX uses a single radius.
   // Choose square dims where half-diagonal == radius: side = radius * sqrt(2)
@@ -108,6 +121,7 @@ export default function VendorDashboard() {
   const [requestedRadius, setRequestedRadius] = useState(""); // meters (only for REQUEST_NEW)
 
   const [pin, setPin] = useState(null); // [lat, lng] only for REQUEST_NEW
+  const [flyToCoords, setFlyToCoords] = useState(null); // For programmatic moves (voice)
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -117,6 +131,120 @@ export default function VendorDashboard() {
   
   // Request Detail State
   const [selectedRequest, setSelectedRequest] = useState(null);
+  
+  // Voice Assistant State
+  const [isListening, setIsListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState(""); // "Processing...", "Locating...", etc.
+  const [mapSearchQuery, setMapSearchQuery] = useState("");
+
+  const handleVoiceCommand = (transcript) => {
+    // If user closed manually (null transcript), clear status
+    if (!transcript) {
+      setVoiceStatus("");
+      return;
+    }
+
+    setVoiceStatus("Processing...");
+    const result = parseBookingIntent(transcript, spaces);
+    
+    // 1. Handle Space Selection or Search
+    if (result.spaceId) {
+       setIntent("OWNER_DEFINED");
+       setSelectedSpaceId(result.spaceId);
+       setVoiceStatus("Space identified: " + (result.spaceName || "Unknown"));
+       setTimeout(() => completeVoiceAction(result), 800);
+    } else if (result.searchQuery) {
+       // Perform Geocoding Search
+       setVoiceStatus(`Searching "${result.searchQuery}"...`);
+       handleGeocodeSearch(result.searchQuery, result);
+    } else if (result.missingFields.includes("location") && !selectedSpaceId) {
+       setVoiceStatus("Location details missing.");
+       showError("I heard clearly, but didn't catch a location. Try again?");
+       setTimeout(() => setVoiceStatus(""), 3000);
+    } else {
+       // Maybe location is already selected manually
+       setVoiceStatus("Using current selection...");
+       completeVoiceAction(result);
+    }
+  };
+
+  const handleGeocodeSearch = async (query, result) => {
+    try {
+      const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const data = await resp.json();
+      
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        
+        // Select logic
+        setIntent("REQUEST_NEW");
+        handlePinSet([lat, lon]);
+        setRequestedRadius(50); 
+        
+        // Fly to location
+        setFlyToCoords([lat, lon]);
+        
+        setVoiceStatus("Location found.");
+        completeVoiceAction(result, `Found "${query}"`);
+      } else {
+        // Fallback: Fill search bar
+        setVoiceStatus("Location not found.");
+        setMapSearchQuery(query);
+        showError(`Could not find "${query}". Please select from the search dropdown.`);
+      }
+    } catch (err) {
+      console.error("Geocoding failed", err);
+      setVoiceStatus("Search failed.");
+      setMapSearchQuery(query);
+      showError("Search failed. Please try the manual search bar.");
+    }
+  };
+
+  const completeVoiceAction = (result, extraMsg = "") => {
+    // 2. Handle Time Selection
+    if (result.startTime && result.endTime) {
+       setVoiceStatus(prev => "Updating dates...");
+       
+       const toLocalISO = (iso) => {
+         const d = new Date(iso);
+         const pad = n => n < 10 ? '0'+n : n;
+         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+       };
+
+       setForm(prev => ({
+         ...prev,
+         startTime: toLocalISO(result.startTime),
+         endTime: toLocalISO(result.endTime)
+       }));
+       
+       setTimeout(() => setVoiceStatus("Date & Time updated."), 600);
+    } else {
+       setVoiceStatus("Dates not found in speech.");
+    }
+
+    // 3. Feedback
+    if (result.spaceName && result.startTime) {
+       showSuccess(`Autofilled for ${result.spaceName}`);
+    } else if (result.spaceName) {
+       showSuccess(`Selected ${result.spaceName}. When?`);
+    } else if (result.startTime) {
+      if (extraMsg) {
+         showSuccess(`${extraMsg}. Time set.`);
+      } else {
+         showSuccess("Time set. Where?");
+      }
+    } else if (extraMsg) {
+       showSuccess(`${extraMsg}`);
+    } else {
+       if (!result.spaceId && !result.searchQuery) {
+          showError("Could not understand command. Try 'Book near [Space] tomorrow 6pm to 8pm'");
+       }
+    }
+    
+    // Clear status after delay
+    setTimeout(() => setVoiceStatus(""), 5000);
+  };
 
   const handleOpenQr = (permit) => {
     setSelectedPermitForQr(permit);
@@ -289,8 +417,8 @@ export default function VendorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
-      <header className="bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+    <div className="h-screen flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+      <header className="flex-none bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div className="mx-auto max-w-6xl px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
           <div className="text-center md:text-left">
             <Link to="/" className="block">
@@ -314,18 +442,19 @@ export default function VendorDashboard() {
         </div>
       </header>
 
-      <main className="flex-1 relative">
+      <main className="flex-1 relative min-h-0">
         {/* MAP-FIRST LAYOUT */}
         <MapContainerFullscreen
           center={selectedSpace ? [Number(selectedSpace.lat), Number(selectedSpace.lng)] : defaultCenter}
           zoom={selectedSpace ? 16 : 13}
-          height="100vh"
+          height="100%"
           onSearchSelect={(lat, lng) => {
             // In request-new mode, also move the pin to the searched location
             if (intent === "REQUEST_NEW") {
               handlePinSet([lat, lng]);
             }
           }}
+          searchQuery={mapSearchQuery}
           isFullscreen={fullscreen}
           onToggleFullscreen={setFullscreen}
           showFullscreenButton={true} 
@@ -430,6 +559,9 @@ export default function VendorDashboard() {
               )}
             </>
           )}
+
+          {/* Voice-triggered FlyTo (must be child of MapContainer) */}
+          <MapFlyTo coords={flyToCoords} />
         </MapContainerFullscreen>
       </main>
 
@@ -451,6 +583,14 @@ export default function VendorDashboard() {
         isOpen={!!selectedRequest}
         onClose={() => setSelectedRequest(null)}
         request={selectedRequest}
+      />
+      
+      {/* Voice Assistant Overlay */}
+      <VoiceAssistant 
+        onCommand={handleVoiceCommand} 
+        isListening={isListening} 
+        setIsListening={setIsListening} 
+        status={voiceStatus}
       />
     </div>
   );

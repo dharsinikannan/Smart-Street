@@ -13,6 +13,24 @@ import {
 } from "@heroicons/react/24/outline";
 import ThemeToggle from "../components/ThemeToggle.jsx";
 
+const InputField = ({ label, icon: Icon, type = "text", value, onChange, placeholder, required = true, ...props }) => (
+  <div className="space-y-1 group">
+    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">{label}</label>
+    <div className="relative flex items-center bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 focus-within:border-cyan-500 focus-within:shadow-lg focus-within:shadow-cyan-500/20 transition-all duration-300">
+      {Icon && <Icon className="w-5 h-5 ml-3 text-slate-400 dark:text-slate-500 group-focus-within:text-cyan-600 dark:group-focus-within:text-cyan-400 transition-colors" />}
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        required={required}
+        className="w-full bg-transparent px-3 py-2.5 text-base md:text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none"
+        placeholder={placeholder}
+        {...props}
+      />
+    </div>
+  </div>
+);
+
 export default function Register() {
   const navigate = useNavigate();
   const { register, loading, error } = useAuth();
@@ -57,24 +75,7 @@ export default function Register() {
     }
   };
 
-  // Helper for input fields
-  const InputField = ({ label, icon: Icon, type = "text", field, placeholder, required = true, ...props }) => (
-    <div className="space-y-1 group">
-      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">{label}</label>
-      <div className="relative flex items-center bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 focus-within:border-cyan-500 focus-within:shadow-lg focus-within:shadow-cyan-500/20 transition-all duration-300">
-        {Icon && <Icon className="w-5 h-5 ml-3 text-slate-400 dark:text-slate-500 group-focus-within:text-cyan-600 dark:group-focus-within:text-cyan-400 transition-colors" />}
-        <input
-          type={type}
-          value={form[field]}
-          onChange={e => updateField(field, e.target.value)}
-          required={required}
-          className="w-full bg-transparent px-3 py-2.5 text-base md:text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none"
-          placeholder={placeholder}
-          {...props}
-        />
-      </div>
-    </div>
-  );
+
 
   return (
     <div className="min-h-screen relative flex items-center justify-center py-10 px-4 overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
@@ -126,10 +127,10 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="space-y-6">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Common Fields */}
-              <InputField label="Full Name" icon={UserIcon} field="name" placeholder="John Doe" />
-              <InputField label="Phone Number" icon={PhoneIcon} field="phone" placeholder="+1 234 567 890" type="tel" />
-              <InputField label="Email Address" icon={EnvelopeIcon} field="email" placeholder="john@example.com" type="email" />
-              <InputField label="Password" icon={LockClosedIcon} field="password" placeholder="••••••••" type="password" minLength={8} />
+              <InputField label="Full Name" icon={UserIcon} value={form.name} onChange={e => updateField("name", e.target.value)} placeholder="John Doe" />
+              <InputField label="Phone Number" icon={PhoneIcon} value={form.phone} onChange={e => updateField("phone", e.target.value)} placeholder="+1 234 567 890" type="tel" />
+              <InputField label="Email Address" icon={EnvelopeIcon} value={form.email} onChange={e => updateField("email", e.target.value)} placeholder="john@example.com" type="email" />
+              <InputField label="Password" icon={LockClosedIcon} value={form.password} onChange={e => updateField("password", e.target.value)} placeholder="••••••••" type="password" minLength={8} />
            </div>
 
            {/* Dynamic Fields based on Role */}
@@ -143,22 +144,22 @@ export default function Register() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {activeRole === "VENDOR" && (
                   <>
-                    <InputField label="Business Name" icon={BriefcaseIcon} field="businessName" placeholder="John's Food Truck" />
-                    <InputField label="Category" icon={BriefcaseIcon} field="category" placeholder="Food & Beverage" />
-                    <InputField label="License Number" icon={IdentificationIcon} field="licenseNumber" placeholder="LIC-12345678" className="md:col-span-2" />
+                    <InputField label="Business Name" icon={BriefcaseIcon} value={form.businessName} onChange={e => updateField("businessName", e.target.value)} placeholder="John's Food Truck" />
+                    <InputField label="Category" icon={BriefcaseIcon} value={form.category} onChange={e => updateField("category", e.target.value)} placeholder="Food & Beverage" />
+                    <InputField label="License Number" icon={IdentificationIcon} value={form.licenseNumber} onChange={e => updateField("licenseNumber", e.target.value)} placeholder="LIC-12345678" className="md:col-span-2" />
                   </>
                 )}
 
                 {activeRole === "OWNER" && (
                   <>
-                    <InputField label="Owner Entity Name" icon={UserIcon} field="ownerName" placeholder="City Council / Pvt Ltd" />
-                    <InputField label="Contact Info (Public)" icon={PhoneIcon} field="contactInfo" placeholder="Public helpline or email" />
+                    <InputField label="Owner Entity Name" icon={UserIcon} value={form.ownerName} onChange={e => updateField("ownerName", e.target.value)} placeholder="City Council / Pvt Ltd" />
+                    <InputField label="Contact Info (Public)" icon={PhoneIcon} value={form.contactInfo} onChange={e => updateField("contactInfo", e.target.value)} placeholder="Public helpline or email" />
                   </>
                 )}
 
                 {activeRole === "ADMIN" && (
                    <div className="md:col-span-2">
-                      <InputField label="Admin Access Code" icon={KeyIcon} field="adminCode" placeholder="Enter secure registration code" />
+                      <InputField label="Admin Access Code" icon={KeyIcon} value={form.adminCode} onChange={e => updateField("adminCode", e.target.value)} placeholder="Enter secure registration code" />
                       <p className="text-[10px] text-slate-500 mt-2 italic">* This code is provided by your system administrator.</p>
                    </div>
                 )}

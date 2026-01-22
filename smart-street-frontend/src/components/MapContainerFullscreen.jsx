@@ -41,6 +41,7 @@ export default function MapContainerFullscreen({
   className = "",
   height = "70vh",
   showSearch = true,
+  searchQuery = "",
   onSearchSelect,
   isFullscreen: controlledIsFullscreen,
   onToggleFullscreen: controlledOnToggleFullscreen,
@@ -133,6 +134,7 @@ export default function MapContainerFullscreen({
           {showSearch && (
             <MapSearchControl 
               onSelect={onSearchSelect} 
+              externalQuery={searchQuery}
               className="absolute top-4 right-16 z-[2000]"
             />
           )}

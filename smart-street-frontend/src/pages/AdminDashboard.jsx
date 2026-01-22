@@ -12,6 +12,9 @@ import { ConfirmModal } from "../components/Modal.jsx";
 import MapSearchControl from "../components/MapSearchControl.jsx";
 import AdminSidebar from "../components/AdminSidebar.jsx";
 import AdminRequestDetail from "../components/AdminRequestDetail.jsx";
+import AdminStatsCards from "../components/AdminStatsCards.jsx";
+import AdminVendorList from "../components/AdminVendorList.jsx";
+import { ChartBarSquareIcon, MapIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 
 import ThemeToggle from "../components/ThemeToggle.jsx";
 
@@ -39,7 +42,32 @@ export default function AdminDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+
   const [viewMode, setViewMode] = useState("pending");
+  const [activeTab, setActiveTab] = useState("overview"); // overview, map, vendors
+  const [stats, setStats] = useState(null);
+  const [vendors, setVendors] = useState([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setStatsLoading(true);
+      try {
+        const [statsRes, vendorsRes] = await Promise.all([
+          api.get("/admin/stats"),
+          api.get("/admin/vendors")
+        ]);
+        setStats(statsRes.data.stats || statsRes.data);
+        setVendors(vendorsRes.data.vendors || []);
+      } catch (err) {
+        console.error("Failed to load stats", err);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -150,28 +178,110 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
       <header className="bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-        <div className="mx-auto max-w-6xl px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
-          <div className="text-center md:text-left">
-            <Link to="/" className="block">
-              <p className="text-[10px] md:text-xs text-blue-700 dark:text-blue-400 font-semibold tracking-[0.2em] hover:opacity-80 transition-opacity">SMART STREET</p>
-            </Link>
-            <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Admin console</h1>
-            <p className="text-[10px] md:text-xs text-slate-600 dark:text-slate-400">Review requests & issue permits</p>
+        <div className="mx-auto max-w-6xl px-4 md:px-6 py-3 md:py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0 mb-4">
+            <div className="text-center md:text-left">
+              <Link to="/" className="block">
+                <p className="text-[10px] md:text-xs text-blue-700 dark:text-blue-400 font-semibold tracking-[0.2em] hover:opacity-80 transition-opacity">SMART STREET</p>
+              </Link>
+              <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Admin console</h1>
+              <p className="text-[10px] md:text-xs text-slate-600 dark:text-slate-400">Review requests & issue permits</p>
+            </div>
+            <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-slate-700 dark:text-slate-300 w-full md:w-auto justify-center md:justify-end">
+              <ThemeToggle />
+              <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+              <NotificationBell />
+              <span className="font-semibold truncate max-w-[100px] md:max-w-none">{user?.name}</span>
+              <button onClick={logout} className="rounded-lg bg-slate-800 dark:bg-slate-700 px-3 py-1 text-white hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors whitespace-nowrap">
+                Logout
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-slate-700 dark:text-slate-300 w-full md:w-auto justify-center md:justify-end">
-            <ThemeToggle />
-            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-            <NotificationBell />
-            <span className="font-semibold truncate max-w-[100px] md:max-w-none">{user?.name}</span>
-            <button onClick={logout} className="rounded-lg bg-slate-800 dark:bg-slate-700 px-3 py-1 text-white hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors whitespace-nowrap">
-              Logout
-            </button>
+
+          {/* Navigation Tabs */}
+          <div className="flex gap-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-full md:w-fit mx-auto md:mx-0">
+             <button
+               onClick={() => setActiveTab("overview")}
+               className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                 activeTab === "overview" ? "bg-white dark:bg-slate-800 shadow text-blue-600 dark:text-blue-400" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+               }`}
+             >
+               <ChartBarSquareIcon className="w-4 h-4" />
+               Overview
+             </button>
+             <button
+               onClick={() => setActiveTab("map")}
+               className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                 activeTab === "map" ? "bg-white dark:bg-slate-800 shadow text-blue-600 dark:text-blue-400" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+               }`}
+             >
+               <MapIcon className="w-4 h-4" />
+               Map & Requests
+             </button>
+             <button
+               onClick={() => setActiveTab("vendors")}
+               className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                 activeTab === "vendors" ? "bg-white dark:bg-slate-800 shadow text-blue-600 dark:text-blue-400" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+               }`}
+             >
+               <UserGroupIcon className="w-4 h-4" />
+               Vendors
+             </button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 relative">
-        {/* MAP-FIRST LAYOUT */}
+      <main className="flex-1 relative h-[calc(100vh-140px)] overflow-hidden">
+        {activeTab === "overview" && (
+           <div className="h-full overflow-y-auto p-4 md:p-6 max-w-7xl mx-auto w-full">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Dashboard Overview</h2>
+              <AdminStatsCards stats={stats} loading={statsLoading} />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 {/* Quick Actions or Recent Logs? For now recent logs */}
+                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 uppercase tracking-wide">Recent Audit Logs</h3>
+                    <div className="space-y-3">
+                       {logs.slice(0, 8).map((log, i) => (
+                          <div key={i} className="flex gap-3 text-sm pb-3 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                             <div className="text-xs text-slate-400 whitespace-nowrap font-mono">{new Date(log.created_at).toLocaleTimeString()}</div>
+                             <div>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium">{log.action}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">by Admin #{log.admin_id?.slice(0,6)}</p>
+                             </div>
+                          </div>
+                       ))}
+                       {logs.length === 0 && <p className="text-sm text-slate-400 italic">No logs found</p>}
+                    </div>
+                 </div>
+
+                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-center items-center text-center">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-full mb-3">
+                       <MapIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Review Pending Requests</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto mt-2 mb-6">
+                       There are {stats?.pending_requests || 0} requests waiting for your approval.
+                    </p>
+                    <button 
+                       onClick={() => setActiveTab("map")}
+                       className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                    >
+                       Go to Map
+                    </button>
+                 </div>
+              </div>
+           </div>
+        )}
+
+        {activeTab === "vendors" && (
+           <div className="h-full overflow-hidden p-4 md:p-6 max-w-7xl mx-auto w-full">
+              <AdminVendorList vendors={vendors} loading={statsLoading} />
+           </div>
+        )}
+
+        {activeTab === "map" && (
+
         <MapContainerFullscreen
           center={selected ? [selected.lat, selected.lng] : defaultCenter}
           zoom={selected ? 16 : 13}
@@ -263,7 +373,9 @@ export default function AdminDashboard() {
               )}
             </>
           )}
+
         </MapContainerFullscreen>
+        )}
 
         <ConfirmModal
           isOpen={showRejectModal}
