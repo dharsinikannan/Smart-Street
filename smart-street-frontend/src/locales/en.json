@@ -1,0 +1,16 @@
+{
+  "app_name": "Smart Street",
+  "search_placeholder": "Find tacos, coffee, burgers...",
+  "login": "Login",
+  "logout": "Logout",
+  "verify": "Verify",
+  "all": "All",
+  "busy_zones": "Busy Zones",
+  "vendors_count": "{{count}} vendors",
+  "open": "OPEN",
+  "closed": "CLOSED",
+  "no_vendors": "No vendors found nearby.",
+  "loading": "Loading spots...",
+  "vendor_workspace": "Vendor Workspace",
+  "reviews": "Reviews & Ratings"
+}

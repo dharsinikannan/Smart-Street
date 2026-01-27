@@ -15,6 +15,9 @@ import RequestDetailModal from "../components/RequestDetailModal.jsx";
 import VoiceAssistant from "../components/VoiceAssistant.jsx";
 import { parseBookingIntent } from "../utils/voiceUtils.js";
 import ThemeToggle from "../components/ThemeToggle.jsx";
+import AnalyticsChart from "../components/AnalyticsChart.jsx";
+import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
+import { useTranslation } from "react-i18next";
 
 const defaultCenter = [11.3410, 77.7172];
 
@@ -98,13 +101,10 @@ const dimsFromRadius = radius => {
   return { maxWidth: side, maxLength: side };
 };
 
-const statusColors = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  APPROVED: "bg-green-100 text-green-800",
-  REJECTED: "bg-red-100 text-red-800"
-};
+import { STATUS_COLORS } from "../utils/constants.js";
 
 export default function VendorDashboard() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { success: showSuccess, error: showError } = useToast();
   const [spaces, setSpaces] = useState([]);
@@ -281,7 +281,7 @@ export default function VendorDashboard() {
     [spaces], // Re-create if spaces change
   );
 
-  const selectedSpace = useMemo(() => spaces.find(s => s.space_id === selectedSpaceId), [spaces, selectedSpaceId]);
+  const selectedSpace = useMemo(() => spaces.find(s => String(s.space_id) === String(selectedSpaceId)), [spaces, selectedSpaceId]);
 
   const ownerDefinedRadius = selectedSpace?.allowed_radius ? Number(selectedSpace.allowed_radius) : 0;
   const newRequestRadius = requestedRadius ? Number(requestedRadius) : 0;
@@ -313,6 +313,8 @@ export default function VendorDashboard() {
     }
   };
 
+  const [analyticsData, setAnalyticsData] = useState([]);
+
   const fetchPermits = async () => {
     try {
       const { data } = await api.get("/vendor/permits");
@@ -322,10 +324,25 @@ export default function VendorDashboard() {
     }
   };
 
+  const fetchAnalytics = async () => {
+    try {
+      const { data } = await api.get("/vendor/analytics"); // Assuming you proxy /api/analytics
+      // Wait, standard structure is api.get('/analytics') but we need to ensure correct route.
+      // In app.js: app.use("/api/analytics", analyticsRoutes);
+      // Protected route: router.get('/', ... getVendorStats);
+      // So path is /api/analytics
+      const response = await api.get("/analytics");
+      setAnalyticsData(response.data.stats || []);
+    } catch (err) {
+      console.error("Failed to load analytics:", err);
+    }
+  };
+
   useEffect(() => {
     fetchSpaces();
     fetchRequests();
     fetchPermits();
+    fetchAnalytics();
   }, []);
 
   // Reset state when intent changes (prevents the “pin always created” bug)
@@ -424,12 +441,13 @@ export default function VendorDashboard() {
         <div className="mx-auto max-w-6xl px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
           <div className="text-center md:text-left">
             <Link to="/" className="block">
-              <p className="text-[10px] md:text-xs text-blue-700 dark:text-blue-400 font-semibold tracking-[0.2em] hover:opacity-80 transition-opacity">SMART STREET</p>
+              <p className="text-[10px] md:text-xs text-blue-700 dark:text-blue-400 font-semibold tracking-[0.2em] hover:opacity-80 transition-opacity">{t('app_name').toUpperCase()}</p>
             </Link>
-            <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Vendor workspace</h1>
+            <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">{t('vendor_workspace')}</h1>
             <p className="text-[10px] md:text-xs text-slate-600 dark:text-slate-400">Choose intent → select owner space → submit request</p>
           </div>
           <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-slate-700 dark:text-slate-300 w-full md:w-auto justify-center md:justify-end">
+            <LanguageSwitcher />
             <ThemeToggle />
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
             <NotificationBell onClick={() => setShowNotificationModal(true)} />
@@ -438,7 +456,7 @@ export default function VendorDashboard() {
               onClick={logout}
               className="rounded-lg bg-slate-800 dark:bg-slate-700 px-3 py-1 text-white hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors whitespace-nowrap"
             >
-              Logout
+              {t('logout')}
             </button>
           </div>
         </div>
@@ -475,6 +493,7 @@ export default function VendorDashboard() {
                 permits={permits}
                 onOpenQr={handleOpenQr}
                 onRequestClick={setSelectedRequest}
+                analyticsData={analyticsData}
               />
               <VendorActionBar
                 intent={intent}

@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import MapContainerFullscreen from "../components/MapContainerFullscreen.jsx";
 import NotificationBell from "../components/NotificationBell.jsx";
+import NotificationModal from "../components/NotificationModal.jsx";
 import { ConfirmModal } from "../components/Modal.jsx";
 import MapSearchControl from "../components/MapSearchControl.jsx";
 import AdminSidebar from "../components/AdminSidebar.jsx";
@@ -25,11 +26,7 @@ const radiusFromDims = (maxWidth, maxLength) => {
   return Math.sqrt(maxWidth ** 2 + maxLength ** 2) / 2;
 };
 
-const statusColors = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  APPROVED: "bg-green-100 text-green-800",
-  REJECTED: "bg-red-100 text-red-800"
-};
+import { STATUS_COLORS } from "../utils/constants.js";
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
@@ -43,6 +40,7 @@ export default function AdminDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   const [viewMode, setViewMode] = useState("pending");
   const [activeTab, setActiveTab] = useState("overview"); // overview, map, vendors
@@ -194,7 +192,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-slate-700 dark:text-slate-300 w-full md:w-auto justify-center md:justify-end">
               <ThemeToggle />
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-              <NotificationBell />
+              <NotificationBell onClick={() => setShowNotificationModal(true)} />
               <span className="font-semibold truncate max-w-[100px] md:max-w-none">{user?.name}</span>
               <button onClick={logout} className="rounded-lg bg-slate-800 dark:bg-slate-700 px-3 py-1 text-white hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors whitespace-nowrap">
                 Logout
@@ -315,7 +313,7 @@ export default function AdminDashboard() {
                 selectedId={selectedId}
                 setSelectedId={setSelectedId}
                 fetchRequests={fetchRequests}
-                statusColors={statusColors}
+                statusColors={STATUS_COLORS}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
               />
@@ -396,6 +394,10 @@ export default function AdminDashboard() {
         </MapContainerFullscreen>
         )}
 
+        <NotificationModal
+          isOpen={showNotificationModal}
+          onClose={() => setShowNotificationModal(false)}
+        />
         <ConfirmModal
           isOpen={showRejectModal}
           onClose={() => setShowRejectModal(false)}

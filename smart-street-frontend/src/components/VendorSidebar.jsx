@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { ChevronRightIcon, ChevronLeftIcon, PlusCircleIcon, ClockIcon, DocumentCheckIcon } from "@heroicons/react/24/outline";
+import { ChevronRightIcon, ChevronLeftIcon, PlusCircleIcon, ClockIcon, DocumentCheckIcon, ArrowRightIcon, QrCodeIcon, ChartBarIcon } from "@heroicons/react/24/outline";
+import AnalyticsChart from "./AnalyticsChart";
+import { useTranslation } from "react-i18next";
 
 export default function VendorSidebar({
   intent,
@@ -14,6 +16,7 @@ export default function VendorSidebar({
   onRequestClick,
   className = ""
 }) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("new"); // "new", "history", "permits"
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,7 +55,7 @@ export default function VendorSidebar({
                 }`}
               >
                 <PlusCircleIcon className="w-4 h-4" />
-                New
+                {t('new', { defaultValue: 'New' })}
               </button>
               <button
                 onClick={() => setActiveTab("history")}
@@ -61,7 +64,7 @@ export default function VendorSidebar({
                 }`}
               >
                 <ClockIcon className="w-4 h-4" />
-                History
+                {t('history', { defaultValue: 'History' })}
               </button>
               <button
                 onClick={() => setActiveTab("permits")}
@@ -70,7 +73,7 @@ export default function VendorSidebar({
                 }`}
               >
                 <DocumentCheckIcon className="w-4 h-4" />
-                Permits
+                {t('permits', { defaultValue: 'Permits' })}
               </button>
            </div>
 
@@ -152,19 +155,6 @@ export default function VendorSidebar({
                     </div>
                   )}
                 </div>
-
-                <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
-
-                 {/* Instructions */}
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 space-y-2">
-                   {intent === "OWNER_DEFINED" ? (
-                    <p>Select a space, check standard radius, and set time.</p>
-                   ) : intent === "REQUEST_NEW" ? (
-                    <p>Select nearest owner space, then <strong>tap map</strong> to drop custom pin.</p>
-                   ) : (
-                    <p className="italic text-slate-400">Choose a type above.</p>
-                   )}
-                </div>
               </>
             )}
 
@@ -189,9 +179,7 @@ export default function VendorSidebar({
                              <span className="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">#{r.request_id.slice(0,6)}</span>
                              <div className="flex items-center gap-2">
                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                 r.status === 'APPROVED' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
-                                 r.status === 'REJECTED' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' :
-                                 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                                 STATUS_COLORS[r.status] || STATUS_COLORS.PENDING
                                }`}>{r.status}</span>
                              </div>
                           </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import InteractiveParticles from "../components/InteractiveParticles";
-import { BuildingStorefrontIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
+import { BuildingStorefrontIcon, ArrowRightIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import ThemeToggle from "../components/ThemeToggle";
 
 export default function LandingPage() {

@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import MapContainerFullscreen from "../components/MapContainerFullscreen.jsx";
 import NotificationBell from "../components/NotificationBell.jsx";
+import NotificationModal from "../components/NotificationModal.jsx";
 import MapSearchControl from "../components/MapSearchControl.jsx";
 import ThemeToggle from "../components/ThemeToggle.jsx";
 import OwnerSidebar from "../components/OwnerSidebar.jsx";
@@ -91,7 +92,7 @@ export default function OwnerDashboard() {
           <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-slate-700 dark:text-slate-300 w-full md:w-auto justify-center md:justify-end">
             <ThemeToggle />
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-            <NotificationBell />
+            <NotificationBell onClick={() => setShowNotificationModal(true)} />
             <span className="font-semibold truncate max-w-[100px] md:max-w-none">{user?.name}</span>
             <button
               onClick={logout}
@@ -154,6 +155,10 @@ export default function OwnerDashboard() {
           ))}
         </MapContainerFullscreen>
       </main>
+      <NotificationModal
+          isOpen={showNotificationModal}
+          onClose={() => setShowNotificationModal(false)}
+      />
     </div>
   );
 }

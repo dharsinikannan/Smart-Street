@@ -111,3 +111,27 @@ CREATE INDEX IF NOT EXISTS idx_space_requests_time ON space_requests (space_id, 
 CREATE INDEX IF NOT EXISTS idx_permits_status ON permits (status);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
+
+-- REVIEWS
+CREATE TABLE IF NOT EXISTS reviews (
+  review_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor_id UUID NOT NULL REFERENCES vendors(vendor_id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT unique_user_vendor_review UNIQUE (vendor_id, user_id)
+);
+
+
+-- ANALYTICS
+CREATE TABLE IF NOT EXISTS vendor_stats (
+  stat_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor_id UUID NOT NULL REFERENCES vendors(vendor_id) ON DELETE CASCADE,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  profile_views INTEGER NOT NULL DEFAULT 0,
+  map_impressions INTEGER NOT NULL DEFAULT 0,
+  CONSTRAINT unique_vendor_date_stats UNIQUE (vendor_id, date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_vendor_stats_date ON vendor_stats (date);

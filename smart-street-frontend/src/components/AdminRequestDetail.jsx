@@ -1,4 +1,5 @@
 import React from "react";
+import { STATUS_COLORS } from "../utils/constants.js";
 
 export default function AdminRequestDetail({
   selected,
@@ -21,9 +22,7 @@ export default function AdminRequestDetail({
           </p>
         </div>
         <span className={`text-xs font-bold px-3 py-1.5 rounded uppercase ${
-          selected.status === "APPROVED" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-          selected.status === "REJECTED" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" :
-          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+          STATUS_COLORS[selected.status] || STATUS_COLORS.PENDING
         }`}>
           {selected.status}
         </span>

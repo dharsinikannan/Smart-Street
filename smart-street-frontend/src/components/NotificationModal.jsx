@@ -10,12 +10,7 @@ const notificationIcons = {
   PERMIT_REVOKED: XCircleIcon
 };
 
-const notificationColors = {
-  REQUEST_APPROVED: "text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30",
-  REQUEST_REJECTED: "text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30",
-  PERMIT_ISSUED: "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30",
-  PERMIT_REVOKED: "text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30"
-};
+import { NOTIFICATION_STYLES } from "../utils/constants.js";
 
 export default function NotificationModal({ isOpen, onClose }) {
   const {
@@ -92,7 +87,7 @@ export default function NotificationModal({ isOpen, onClose }) {
                   ) : (
                     notifications.map((notification) => {
                       const Icon = notificationIcons[notification.type] || BellIcon;
-                      const colorClass = notificationColors[notification.type] || "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800";
+                      const colorClass = NOTIFICATION_STYLES[notification.type] || "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800";
 
                       return (
                         <div

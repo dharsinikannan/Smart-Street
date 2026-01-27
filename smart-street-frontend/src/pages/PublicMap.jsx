@@ -1,12 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { Marker, Circle, Popup, useMap } from "react-leaflet";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import api from "../api.jsx";
 import MapContainerFullscreen from "../components/MapContainerFullscreen.jsx";
 import MapSearchControl from "../components/MapSearchControl.jsx";
 import PublicSidebar from "../components/PublicSidebar.jsx";
 import ThemeToggle from "../components/ThemeToggle.jsx";
+import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
+import { useTranslation } from "react-i18next";
 
 const defaultCenter = [11.3410, 77.7172];
 
@@ -50,6 +52,7 @@ const MapZoomHandler = ({ target }) => {
 };
 
 export default function PublicMap() {
+  const { t } = useTranslation();
   const [vendors, setVendors] = useState([]);
   const [congestion, setCongestion] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -116,6 +119,22 @@ export default function PublicMap() {
     }
   }, [mapBounds]);
 
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.focusVendor) {
+      // Small delay to ensure map is ready or just set it directly
+      setSelectedVendor({ data: location.state.focusVendor, ts: Date.now() });
+      
+      // Clear state so it doesn't persist if we navigate away and back? 
+      // Actually React Router state persists. We might want to clear it, but let's keep it simple.
+      // We can also ensure the vendor is added to the list if not already present?
+      // Logic: if the vendor from search results isn't in the current viewport list, we should probably add it 
+      // OR we just rely on the map moving to that location and fetching new vendors there.
+      // But fetchVendors depends on viewport? No, fetchVendors fetches ALL public vendors currently (based on API).
+      // So simply setting selectedVendor is enough.
+    }
+  }, [location.state]);
+
   // Wrap selected vendor in an object with distinct key to force updates on re-click
   const handleVendorClick = (vendor) => {
     setSelectedVendor({ data: vendor, ts: Date.now() });
@@ -157,16 +176,19 @@ export default function PublicMap() {
                to="/verify"
                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-3 py-2 sm:px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm whitespace-nowrap"
              >
-               Verify
+               {t('verify')}
              </Link>
              <Link
                to="/login"
                className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 backdrop-blur-md px-3 py-2 sm:px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-white transition-all shadow-md shadow-cyan-600/20"
              >
-               Login
+               {t('login')}
              </Link>
              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hidden sm:block">
                <ThemeToggle />
+             </div>
+             <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hidden sm:block">
+               <LanguageSwitcher />
              </div>
            </div>
 
