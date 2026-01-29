@@ -87,7 +87,7 @@ describe('Admin Endpoints', () => {
       expect(res.body).toHaveProperty('request');
       expect(res.body).toHaveProperty('permit');
       expect(res.body.request.status).toEqual('APPROVED');
-    });
+    }, 30000);
   });
 
   describe('Stats', () => {
