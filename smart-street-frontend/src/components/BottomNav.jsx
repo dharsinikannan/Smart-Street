@@ -53,7 +53,7 @@ export default function BottomNav({ tabs, activeKey, onTabChange, profilePath = 
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-[50] sm:hidden"
+      className="fixed bottom-0 left-0 right-0 z-[3000] sm:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Bottom navigation"
     >

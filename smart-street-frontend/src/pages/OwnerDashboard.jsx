@@ -109,7 +109,7 @@ export default function OwnerDashboard() {
     <div className="flex flex-col h-screen overflow-hidden overflow-x-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
 
 
-      <header className="bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 relative z-[5000]">
+      <header className="bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 relative z-[4000]">
         <div className="px-4 md:px-6 py-4 flex flex-col md:flex-row items-center justify-center min-h-[80px]">
           {/* Centered Title */}
           <div className="text-center z-10">

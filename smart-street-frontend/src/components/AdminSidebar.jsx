@@ -19,14 +19,14 @@ export default function AdminSidebar({
 
   return (
     <div
-      className={`fixed transition-all duration-300 shadow-xl border border-slate-200 dark:border-slate-800 z-[30]
+      className={`fixed transition-all duration-300 shadow-xl border border-slate-200 dark:border-slate-800 z-[2000]
         ${collapsed
-          ? "w-12 h-12 rounded-full overflow-hidden bg-white/90 dark:bg-slate-900/90 top-28 left-4 md:top-28 md:left-4"
+          ? "w-12 h-12 rounded-full overflow-hidden bg-white/90 dark:bg-slate-900/90 top-32 left-4 md:top-32 md:left-4"
           : "bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-t-2xl md:rounded-xl flex flex-col"
         }
         ${!collapsed && `
           bottom-0 left-0 right-0 w-full max-h-[50vh] 
-          md:top-28 md:left-4 md:bottom-auto md:right-auto md:w-[clamp(320px,30vw,400px)] md:max-h-[calc(100vh-8rem)]
+          md:top-32 md:left-4 md:bottom-auto md:right-auto md:w-[clamp(320px,30vw,400px)] md:max-h-[calc(100vh-10rem)]
         `}
         ${className}
       `}

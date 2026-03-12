@@ -59,8 +59,26 @@ export default function PublicMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [mapBounds, setMapBounds] = useState(null);
-  const [fullscreen, setFullscreen] = useState(true); // Default to fullscreen
-  const [selectedVendor, setSelectedVendor] = useState(null); // For zoom interaction
+  const [fullscreen, setFullscreen] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null); 
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Auto-collapse sidebar on mobile resize to desktop transition? 
+      // Actually let's just leave it as is if fixed, but the user wants it hidden by default on mobile.
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Prevent double scrolling
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   const categories = useMemo(() => {
     const cats = new Set(vendors.map(v => v.category).filter(Boolean));
@@ -75,7 +93,8 @@ export default function PublicMap() {
         (v.business_name && v.business_name.toLowerCase().includes(q)) ||
         (v.category && v.category.toLowerCase().includes(q)) ||
         (v.space_name && v.space_name.toLowerCase().includes(q)) ||
-        (v.address && v.address.toLowerCase().includes(q));
+        (v.address && v.address.toLowerCase().includes(q)) ||
+        (v.menu_items && Array.isArray(v.menu_items) && v.menu_items.some(item => item.name && item.name.toLowerCase().includes(q)));
       const matchesCategory = !selectedCategory || v.category === selectedCategory;
       return matchesQuery && matchesCategory;
     });
@@ -83,6 +102,8 @@ export default function PublicMap() {
 
   const fetchVendors = async (signal) => {
     setLoading(true);
+    console.log("[Search Debug]: Querying for:", searchQuery);
+    console.log("[Auth Debug]: Token present:", !!localStorage.getItem('smartstreet_token'));
     try {
       const { data } = await api.get("/public/vendors", { signal });
       setVendors(data.vendors || []);
@@ -143,34 +164,38 @@ export default function PublicMap() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
 
-      {/* Map Layout */}
-      <MapContainerFullscreen
-        center={defaultCenter}
-        zoom={13}
-        height="100vh"
-        isFullscreen={fullscreen}
-        onToggleFullscreen={setFullscreen}
-        showFullscreenButton={false}
-        showSearch={false}
-        overlayContent={
-          <>
-            {/* Sidebar */}
-            <PublicSidebar
-              vendors={filteredVendors}
-              congestion={congestion}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              categories={categories}
-              onVendorClick={handleVendorClick}
-              loading={loading}
-            />
-          </>
-        }
-      >
-        {/* Center Search Bar */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[2000] pointer-events-none w-[calc(100%-2rem)] md:w-[500px]">
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <MapContainerFullscreen
+            height="100dvh"
+            center={defaultCenter}
+            zoom={13}
+            showSearch={false} // Disable internal search to avoid duplicate
+            searchQuery={searchQuery}
+            sidebarOpen={sidebarOpen}
+            onToggleFullscreen={setFullscreen}
+            isFullscreen={fullscreen}
+            overlayContent={
+              <PublicSidebar
+                vendors={filteredVendors}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                categories={categories}
+                onVendorClick={setSelectedVendor}
+                loading={loading}
+                congestion={congestion}
+                isOpen={sidebarOpen}
+                setIsOpen={setSidebarOpen}
+              />
+            }
+          >
+        {/* Center Search Bar - Intelligence Viewport Shift */}
+        <div 
+          className={`absolute top-2 md:top-4 z-[1000] pointer-events-none transition-all duration-500 ease-in-out left-1/2 -translate-x-1/2 w-[90%] md:w-[500px] ${
+            sidebarOpen ? 'md:left-[calc(384px+(100vw-384px)/2)]' : ''
+          }`}
+        >
           <div className="pointer-events-auto">
             <MapSearchControl
               placeholder="Search places..."
@@ -213,6 +238,7 @@ export default function PublicMap() {
 
           const lat = Number(vendor.lat);
           const lng = Number(vendor.lng);
+          const isOpenNow = isVendorOpen(vendor.start_time, vendor.end_time);
 
           const requestRadius = vendor.max_width && vendor.max_length
             ? radiusFromDims(vendor.max_width, vendor.max_length)
@@ -225,26 +251,68 @@ export default function PublicMap() {
                 eventHandlers={{
                   click: () => handleVendorClick(vendor)
                 }}
+                icon={L.divIcon({
+                  className: 'custom-vendor-marker',
+                  html: `
+                    <div class="relative group">
+                      <div class="w-8 h-8 rounded-full border-4 border-white shadow-lg flex items-center justify-center transition-all duration-300 ${vendor.is_active ? 'bg-blue-600 scale-110' : 'bg-slate-400 grayscale opacity-75'}">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.5 21l-7.5-7.5 7.5-7.5M21 12H3"></path>
+                        </svg>
+                      </div>
+                      ${isOpenNow && vendor.is_active ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>' : ''}
+                    </div>
+                  `,
+                  iconSize: [32, 32],
+                  iconAnchor: [16, 16]
+                })}
               >
                 <Popup>
                   <div className="text-sm min-w-[200px]">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold text-base">{vendor.business_name}</h3>
+                       <div className="flex flex-col">
+                        <h3 className="font-bold text-base">{vendor.business_name}</h3>
+                        {!vendor.is_active && (
+                          <span className="text-[10px] text-red-500 font-bold uppercase mt-0.5">Closed</span>
+                        )}
+                       </div>
                       <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-medium uppercase">{vendor.category}</span>
                     </div>
-                    {/* Add mock rating here since real rating isn't in DB yet */}
+                    
                     <div className="flex items-center gap-1 mb-1">
                       <span className="text-yellow-400 text-xs">★</span>
                       <span className="font-bold text-xs">4.{Math.floor(Math.random() * 9) + 1}</span>
                       <span className="text-slate-400 text-xs">({Math.floor(Math.random() * 50) + 10})</span>
                     </div>
+
                     <p className="text-xs text-slate-600 mb-1">{vendor.address}</p>
                     <p className="text-xs text-slate-500 mb-2">{vendor.space_name}</p>
 
-                    <div className="border-t pt-2 mt-2 flex justify-between items-center">
-                      <p className="text-xs font-mono text-slate-500">
-                        {new Date(vendor.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(vendor.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                    {vendor.menu_items?.length > 0 && (
+                      <div className="mb-2">
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Offering</p>
+                         <div className="flex flex-wrap gap-1">
+                           {vendor.menu_items.slice(0, 3).map((item, idx) => (
+                             <span key={idx} className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded text-[10px] text-slate-600 dark:text-slate-300">
+                               {item.name}
+                             </span>
+                           ))}
+                           {vendor.menu_items.length > 3 && <span className="text-[10px] text-slate-400">+{vendor.menu_items.length - 3} more</span>}
+                         </div>
+                      </div>
+                    )}
+
+                    <div className="border-t pt-2 mt-2">
+                       {vendor.operating_hours?.text && (
+                         <p className="text-[10px] text-slate-500 mb-1 flex justify-between">
+                            <span className="font-bold uppercase tracking-widest text-[9px]">Regular Hours</span>
+                            <span>{vendor.operating_hours.text}</span>
+                         </p>
+                       )}
+                       <p className="text-xs font-mono text-slate-500 flex items-center justify-between">
+                         <span className="font-bold uppercase tracking-widest text-[9px]">{isOpenNow ? 'Current slot' : 'Slot'}</span>
+                         <span>{new Date(vendor.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(vendor.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                       </p>
                     </div>
                   </div>
                 </Popup>
@@ -268,5 +336,19 @@ export default function PublicMap() {
         })}
       </MapContainerFullscreen>
     </div>
+  </div>
   );
+}
+
+function isVendorOpen(start, end) {
+  if (!start || !end) return false;
+  const current = new Date();
+  const startTime = new Date(start);
+  const endTime = new Date(end);
+  
+  // Normalize to today's date for time comparison
+  const s = new Date(); s.setHours(startTime.getHours(), startTime.getMinutes(), 0);
+  const e = new Date(); e.setHours(endTime.getHours(), endTime.getMinutes(), 0);
+  
+  return current >= s && current <= e;
 }

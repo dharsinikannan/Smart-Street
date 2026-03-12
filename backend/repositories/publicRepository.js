@@ -8,6 +8,8 @@ const listApprovedVendors = async () => {
       v.business_name,
       v.category,
       v.license_number,
+      v.is_active,
+      v.operating_hours,
       u.name AS vendor_name,
       sr.request_id,
       sr.space_id,
@@ -22,15 +24,13 @@ const listApprovedVendors = async () => {
       p.permit_id,
       p.status AS permit_status,
       p.valid_from,
-      p.valid_to
+      p.valid_to,
+      v.menu_items
     FROM vendors v
     JOIN users u ON u.user_id = v.user_id
-    JOIN space_requests sr ON sr.vendor_id = v.vendor_id
-    JOIN spaces s ON s.space_id = sr.space_id
-    LEFT JOIN permits p ON p.request_id = sr.request_id
-    WHERE sr.status = 'APPROVED'
-      AND (p.status IS NULL OR p.status = 'VALID')
-      AND NOW() BETWEEN sr.start_time AND sr.end_time
+    LEFT JOIN space_requests sr ON sr.vendor_id = v.vendor_id AND sr.status = 'APPROVED'
+    LEFT JOIN spaces s ON s.space_id = sr.space_id
+    LEFT JOIN permits p ON p.request_id = sr.request_id AND (p.status IS NULL OR p.status = 'VALID')
     ORDER BY v.vendor_id, sr.start_time DESC;
     `
   );
@@ -44,6 +44,8 @@ const searchVendors = async ({ query, category, spaceId }) => {
       v.business_name,
       v.category,
       v.license_number,
+      v.is_active,
+      v.operating_hours,
       u.name AS vendor_name,
       sr.request_id,
       sr.space_id,
@@ -58,15 +60,14 @@ const searchVendors = async ({ query, category, spaceId }) => {
       p.permit_id,
       p.status AS permit_status,
       p.valid_from,
-      p.valid_to
+      p.valid_to,
+      v.menu_items
     FROM vendors v
     JOIN users u ON u.user_id = v.user_id
-    JOIN space_requests sr ON sr.vendor_id = v.vendor_id
-    JOIN spaces s ON s.space_id = sr.space_id
-    LEFT JOIN permits p ON p.request_id = sr.request_id
-    WHERE sr.status = 'APPROVED'
-      AND (p.status IS NULL OR p.status = 'VALID')
-      AND NOW() BETWEEN sr.start_time AND sr.end_time
+    LEFT JOIN space_requests sr ON sr.vendor_id = v.vendor_id AND sr.status = 'APPROVED'
+    LEFT JOIN spaces s ON s.space_id = sr.space_id
+    LEFT JOIN permits p ON p.request_id = sr.request_id AND (p.status IS NULL OR p.status = 'VALID')
+    WHERE 1=1
   `;
   const params = [];
   let paramIndex = 1;
@@ -77,6 +78,10 @@ const searchVendors = async ({ query, category, spaceId }) => {
       OR v.category ILIKE $${paramIndex}
       OR s.space_name ILIKE $${paramIndex}
       OR s.address ILIKE $${paramIndex}
+      OR EXISTS (
+        SELECT 1 FROM jsonb_array_elements(v.menu_items) AS item 
+        WHERE item->>'name' ILIKE $${paramIndex}
+      )
     )`;
     params.push(`%${query}%`);
     paramIndex++;

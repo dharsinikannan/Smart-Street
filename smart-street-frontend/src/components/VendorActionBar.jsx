@@ -50,7 +50,7 @@ export default function VendorActionBar({
         exit={{ y: 200, opacity: 0 }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
         className={`
-          fixed z-[60] bottom-24 left-4 right-4
+          fixed z-[2100] bottom-28 left-4 right-4
           md:absolute md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-5xl lg:max-w-6xl md:px-4 md:bg-transparent md:border-none md:shadow-none
           ${className}
         `}

@@ -13,7 +13,7 @@ const hashToken = raw =>
         .update(raw)
         .digest("hex");
 
-const allowedRoles = ["VENDOR", "OWNER", "ADMIN"];
+const allowedRoles = ["VENDOR", "OWNER", "ADMIN", "USER"];
 
 const toClientUser = dbUser => ({
   userId: dbUser.user_id,

@@ -25,6 +25,8 @@ export default function VendorStorefront() {
     const [category, setCategory] = useState("");
     const [stallPhoto, setStallPhoto] = useState("");
     const [menuItems, setMenuItems] = useState([]);
+    const [isActive, setIsActive] = useState(false);
+    const [operatingHours, setOperatingHours] = useState("");
     const [newItemName, setNewItemName] = useState("");
     const [newItemPrice, setNewItemPrice] = useState("");
 
@@ -42,6 +44,8 @@ export default function VendorStorefront() {
                 setCategory(vendorData.category || "Food");
                 setStallPhoto(vendorData.stall_photo || "");
                 setMenuItems(vendorData.menu_items || []);
+                setIsActive(vendorData.is_active || false);
+                setOperatingHours(vendorData.operating_hours?.text || "");
             }
         } catch (err) {
             // Error handled visually by failing to load UI
@@ -69,7 +73,9 @@ export default function VendorStorefront() {
                 businessName,
                 category,
                 stallPhoto,
-                menuItems
+                menuItems,
+                isActive,
+                operatingHours: { text: operatingHours }
             });
             setSaved(true);
             success(t("storefront_updated"));
@@ -100,10 +106,24 @@ export default function VendorStorefront() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {/* Basic Info */}
                 <section className="space-y-6">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <ShoppingBagIcon className="w-5 h-5 text-blue-500" />
-                        {t("stall_identity")}
-                    </h2>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <ShoppingBagIcon className="w-5 h-5 text-blue-500" />
+                            {t("stall_identity")}
+                        </h2>
+                        {/* Live Now Toggle */}
+                        <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-2xl border border-slate-200 dark:border-slate-700">
+                             <span className={`text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-green-500' : 'text-slate-400'}`}>
+                               {isActive ? 'Live Now' : 'Offline'}
+                             </span>
+                             <button
+                                onClick={() => setIsActive(!isActive)}
+                                className={`w-12 h-6 rounded-full transition-all duration-300 relative ${isActive ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]' : 'bg-slate-300 dark:bg-slate-600'}`}
+                             >
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${isActive ? 'left-7' : 'left-1'}`} />
+                             </button>
+                        </div>
+                    </div>
 
                     <div className="space-y-4">
                         <div>
@@ -113,6 +133,15 @@ export default function VendorStorefront() {
                                 onChange={e => setBusinessName(e.target.value)}
                                 className="w-full text-[16px] md:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
                                 placeholder={t("name_of_stall_placeholder")}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-500 uppercase mb-2">{t("operating_hours") || "Operating Hours (e.g. 9am - 5pm)"}</label>
+                            <input
+                                value={operatingHours}
+                                onChange={e => setOperatingHours(e.target.value)}
+                                className="w-full text-[16px] md:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
+                                placeholder="Monday - Friday: 9:00 AM - 6:00 PM"
                             />
                         </div>
                         <div>

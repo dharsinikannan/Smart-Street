@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
-import { ChevronRightIcon, ChevronLeftIcon, PlusCircleIcon, ClockIcon, DocumentCheckIcon, ArrowRightIcon, QrCodeIcon, ChartBarIcon } from "@heroicons/react/24/outline";
+import { ChevronRightIcon, ChevronLeftIcon, PlusCircleIcon, ClockIcon, DocumentCheckIcon, ArrowRightIcon, QrCodeIcon, ChartBarIcon, ArrowsUpDownIcon } from "@heroicons/react/24/outline";
 import AnalyticsChart from "./AnalyticsChart";
 import { useTranslation } from "react-i18next";
 import { STATUS_COLORS, STATUS_LABELS } from "../utils/constants";
 import SelectSpaceDrawer from "./SelectSpaceDrawer";
 import LoadingSpinner from "./LoadingSpinner";
+import SearchableSelect from "./SearchableSelect";
 
 export default function VendorSidebar({
   intent,
@@ -24,6 +25,8 @@ export default function VendorSidebar({
 }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("new"); // "new", "history", "permits"
+  const [historySort, setHistorySort] = useState("recent"); // "recent", "size"
+  const [permitsSort, setPermitsSort] = useState("recent"); // "recent", "size"
   const controls = useAnimation();
 
   // Desktop vs Mobile check
@@ -56,7 +59,7 @@ export default function VendorSidebar({
   };
 
   const variants = {
-    collapsed: { y: "calc(100% - 130px)" }, // Show top bar + padding for BottomNav
+    collapsed: { y: "calc(100% - 150px)" }, // Show top bar + padding for BottomNav
     half: { y: "50%" },
     full: { y: "1%" } // almost reaching the top but not completely
   };
@@ -104,11 +107,11 @@ export default function VendorSidebar({
       dragConstraints={{ top: 0, bottom: 0 }}
       dragElastic={0.2}
       onDragEnd={handleDragEnd}
-      className={`fixed shadow-[var(--tw-shadow-xl),0_-10px_20px_rgba(0,0,0,0.1)] border border-slate-200 dark:border-slate-800 z-[50]
+      className={`fixed shadow-[var(--tw-shadow-xl),0_-10px_20px_rgba(0,0,0,0.1)] border border-slate-200 dark:border-slate-800 z-[2000]
         bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex flex-col
         ${isMobile 
           ? "bottom-0 left-0 right-0 w-full h-[90dvh] rounded-t-[2.5rem] pb-[env(safe-area-inset-bottom)]" 
-          : "md:top-28 md:left-4 md:bottom-auto md:right-auto md:w-[clamp(320px,30vw,400px)] md:max-h-[calc(100vh-8rem)] rounded-xl !transform-none"
+          : "md:top-32 md:left-4 md:bottom-auto md:right-auto md:w-[clamp(320px,30vw,400px)] md:max-h-[calc(100vh-10rem)] rounded-xl !transform-none"
         }
         ${className}
       `}
@@ -289,6 +292,10 @@ export default function VendorSidebar({
                               <span className="font-bold text-slate-800 dark:text-slate-200">{spaces.find(s => s.space_id === selectedSpaceId)?.allowed_radius || 0}m</span>
                             </div>
                             <div className="flex justify-between">
+                              <span className="font-medium">Approx Area:</span>
+                              <span className="font-bold text-slate-800 dark:text-slate-200">{Math.round(Math.PI * (spaces.find(s => s.space_id === selectedSpaceId)?.allowed_radius || 0)**2)}m²</span>
+                            </div>
+                            <div className="flex justify-between">
                               <span className="font-medium">Price per meter:</span>
                               <span className="font-bold text-slate-800 dark:text-slate-200">₹{spaces.find(s => s.space_id === selectedSpaceId)?.price_per_radius || 0}</span>
                             </div>
@@ -326,9 +333,22 @@ export default function VendorSidebar({
             {/* --- TAB: HISTORY --- */}
             {activeTab === "history" && (
               <div className="space-y-4">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-1">{t('request_history_title')}</h2>
-                  <p className="text-base text-slate-500 dark:text-slate-400">{t('request_history_subtitle')}</p>
+                <div className="flex justify-between items-end mb-1">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">{t('request_history_title')}</h2>
+                    <p className="text-base text-slate-500 dark:text-slate-400">{t('request_history_subtitle')}</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                    <ArrowsUpDownIcon className="w-3.5 h-3.5 text-slate-400 ml-1" />
+                    <select
+                      value={historySort}
+                      onChange={(e) => setHistorySort(e.target.value)}
+                      className="bg-transparent text-xs font-bold text-slate-600 dark:text-slate-400 outline-none pr-1"
+                    >
+                      <option value="recent">Recent</option>
+                      <option value="size">Size</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   {loading ? (
@@ -356,27 +376,40 @@ export default function VendorSidebar({
                   ) : requests.length === 0 ? (
                     <p className="text-base text-slate-400 italic">{t('no_requests_found')}</p>
                   ) : (
-                    requests.map(r => (
-                      <div
-                        key={r.request_id}
-                        onClick={() => onRequestClick && onRequestClick(r)}
-                        className="p-4 bg-white dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700 rounded-lg hover:border-blue-200 dark:hover:border-blue-500 transition-colors cursor-pointer group"
-                      >
-                        {/* Row 1: ID + badge — wrap on small screens */}
-                        <div className="flex flex-wrap gap-x-2 gap-y-1 items-start mb-1">
-                          <span className="font-bold text-base text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">#{r.request_id.slice(0, 6)}</span>
-                          <span className={`px-2.5 py-0.5 rounded text-xs font-bold leading-5 shrink-0 ${STATUS_COLORS[r.status] || STATUS_COLORS.PENDING}`}>
-                            {STATUS_LABELS[r.status] || r.status}
-                          </span>
+                    [...requests]
+                      .sort((a, b) => {
+                        if (historySort === "recent") return new Date(b.submitted_at) - new Date(a.submitted_at);
+                        if (historySort === "size") {
+                          const areaA = (a.max_width || 0) * (a.max_length || 0);
+                          const areaB = (b.max_width || 0) * (b.max_length || 0);
+                          return areaB - areaA;
+                        }
+                        return 0;
+                      })
+                      .map(r => (
+                        <div
+                          key={r.request_id}
+                          onClick={() => onRequestClick && onRequestClick(r)}
+                          className="p-4 bg-white dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700 rounded-lg hover:border-blue-200 dark:hover:border-blue-500 transition-colors cursor-pointer group"
+                        >
+                          {/* Row 1: ID + badge — wrap on small screens */}
+                          <div className="flex flex-wrap gap-x-2 gap-y-1 items-start mb-1">
+                            <span className="font-bold text-base text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">#{r.request_id.slice(0, 6)}</span>
+                            <span className={`px-2.5 py-0.5 rounded text-xs font-bold leading-5 shrink-0 ${STATUS_COLORS[r.status] || STATUS_COLORS.PENDING}`}>
+                              {STATUS_LABELS[r.status] || r.status}
+                            </span>
+                          </div>
+                          {/* Space name: 2-line clamp instead of hard truncate */}
+                          <p className="text-slate-600 dark:text-slate-400 line-clamp-2 text-sm font-medium leading-snug">{r.space_name || t('custom_location')}</p>
+                          <div className="flex justify-between items-center mt-2">
+                            <div className="flex flex-col">
+                              <p className="text-xs text-slate-400">{new Date(r.submitted_at).toLocaleDateString()}</p>
+                              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Area: {Math.round((r.max_width * r.max_length))}m²</p>
+                            </div>
+                            <span className="text-xs text-blue-500 font-bold">{t('view_details')} →</span>
+                          </div>
                         </div>
-                        {/* Space name: 2-line clamp instead of hard truncate */}
-                        <p className="text-slate-600 dark:text-slate-400 line-clamp-2 text-sm font-medium leading-snug">{r.space_name || t('custom_location')}</p>
-                        <div className="flex justify-between items-center mt-2">
-                          <p className="text-xs text-slate-400">{new Date(r.submitted_at).toLocaleDateString()}</p>
-                          <span className="text-xs text-blue-500 font-bold">{t('view_details')} →</span>
-                        </div>
-                      </div>
-                    ))
+                      ))
                   )}
                 </div>
               </div>
@@ -385,9 +418,22 @@ export default function VendorSidebar({
             {/* --- TAB: PERMITS --- */}
             {activeTab === "permits" && (
               <div className="space-y-4">
-                <div>
-                  <h2 className="text-base font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-1">{t('my_permits_title')}</h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{t('my_permits_subtitle')}</p>
+                <div className="flex justify-between items-end mb-1">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">{t('my_permits_title')}</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{t('my_permits_subtitle')}</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                    <ArrowsUpDownIcon className="w-3.5 h-3.5 text-slate-400 ml-1" />
+                    <select
+                      value={permitsSort}
+                      onChange={(e) => setPermitsSort(e.target.value)}
+                      className="bg-transparent text-xs font-bold text-slate-600 dark:text-slate-400 outline-none pr-1"
+                    >
+                      <option value="recent">Recent</option>
+                      <option value="size">Size</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {loading ? (
@@ -397,43 +443,58 @@ export default function VendorSidebar({
                   ) : permits.length === 0 ? (
                     <p className="text-sm text-slate-400 italic">{t('no_active_permits')}</p>
                   ) : (
-                    permits.map((p, index) => (
-                      <div key={p.permit_id} className="p-3 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-lg text-sm">
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="font-bold text-base text-green-900 dark:text-green-300 border-b border-green-200 dark:border-green-800 pb-0.5 line-clamp-1">
-                            {p.space_name || `Permit #${index + 1}`}
-                          </span>
-                          {/* Action buttons row */}
-                          <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
-                            {/* Share button — only shown when Web Share API is available (mobile) */}
-                            {'share' in navigator && (
+                    [...permits]
+                      .sort((a, b) => {
+                        if (permitsSort === "recent") return new Date(b.issued_at || b.valid_from) - new Date(a.issued_at || a.valid_from);
+                        if (permitsSort === "size") {
+                          const areaA = (a.max_width || 0) * (a.max_length || 0);
+                          const areaB = (b.max_width || 0) * (b.max_length || 0);
+                          return areaB - areaA;
+                        }
+                        return 0;
+                      })
+                      .map((p, index) => (
+                        <div key={p.permit_id} className="p-3 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-lg text-sm">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-bold text-base text-green-900 dark:text-green-300 border-b border-green-200 dark:border-green-800 pb-0.5 line-clamp-1">
+                              {p.space_name || `Permit #${index + 1}`}
+                            </span>
+                            {/* Action buttons row */}
+                            <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+                              {/* Share button — only shown when Web Share API is available (mobile) */}
+                              {'share' in navigator && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSharePermit(p)}
+                                  title="Share permit"
+                                  className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 active:scale-95 transition-all"
+                                  aria-label="Share this permit"
+                                >
+                                  {/* Share icon (heroicons share) */}
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                  </svg>
+                                </button>
+                              )}
                               <button
-                                type="button"
-                                onClick={() => handleSharePermit(p)}
-                                title="Share permit"
-                                className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 active:scale-95 transition-all"
-                                aria-label="Share this permit"
+                                onClick={() => onOpenQr && onOpenQr(p)}
+                                className="text-sm bg-green-200 dark:bg-green-900 text-green-900 dark:text-green-100 px-3 py-2 rounded-lg hover:bg-green-300 dark:hover:bg-green-800 active:scale-95 transition-all font-bold shadow-sm"
                               >
-                                {/* Share icon (heroicons share) */}
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                                </svg>
+                                {t('view_permit')}
                               </button>
-                            )}
-                            <button
-                              onClick={() => onOpenQr && onOpenQr(p)}
-                              className="text-sm bg-green-200 dark:bg-green-900 text-green-900 dark:text-green-100 px-3 py-2 rounded-lg hover:bg-green-300 dark:hover:bg-green-800 active:scale-95 transition-all font-bold shadow-sm"
-                            >
-                              {t('view_permit')}
-                            </button>
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-1 mt-2">
+                             <div className="flex justify-between items-center text-xs font-semibold text-green-700 dark:text-green-400">
+                               <span>{t('valid_from')}: {new Date(p.valid_from).toLocaleDateString()}</span>
+                               <span>{t('valid_to')}: {new Date(p.valid_to).toLocaleDateString()}</span>
+                             </div>
+                             <div className="text-[10px] font-bold text-green-600/70 dark:text-green-400/50 uppercase tracking-tighter">
+                               Radius: {Math.round(Math.sqrt((p.max_width**2 + p.max_length**2))/2)}m (Approx Area: {Math.round(p.max_width * p.max_length)}m²)
+                             </div>
                           </div>
                         </div>
-                        <div className="flex gap-4 mt-2 text-xs font-semibold text-green-700 dark:text-green-400">
-                          <span>{t('valid_from')}: {new Date(p.valid_from).toLocaleDateString()}</span>
-                          <span>{t('valid_to')}: {new Date(p.valid_to).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    ))
+                      ))
                   )}
                 </div>
               </div>

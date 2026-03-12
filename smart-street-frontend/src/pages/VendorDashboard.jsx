@@ -515,7 +515,7 @@ export default function VendorDashboard() {
     <div className="min-h-screen flex flex-col overflow-hidden overflow-x-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
 
 
-      <header className="flex-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-[0_4px_30px_rgba(0,0,0,0.05)] border-b border-white/50 dark:border-slate-800/50 transition-colors duration-300 relative z-[5000] sticky top-0">
+      <header className="flex-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-[0_4px_30px_rgba(0,0,0,0.05)] border-b border-white/50 dark:border-slate-800/50 transition-colors duration-300 relative z-[4000] sticky top-0">
         <div className="relative px-4 sm:px-6 py-3 sm:py-4 flex flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-8">
             <Link to="/" className="hidden lg:block">

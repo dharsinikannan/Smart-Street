@@ -85,7 +85,7 @@ export default function App() {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute roles={["VENDOR", "OWNER", "ADMIN"]}>
+            <ProtectedRoute roles={["VENDOR", "OWNER", "ADMIN", "USER"]}>
               <PageTransition>
                 <Profile />
               </PageTransition>

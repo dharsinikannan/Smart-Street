@@ -55,8 +55,8 @@ export default function MapContainerFullscreen({
   onToggleFullscreen: controlledOnToggleFullscreen,
   overlayContent,
   showFullscreenButton = true,
-  searchClassName = "absolute top-6 z-[1000] left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-[500px]",
-  controlsClassName = "absolute top-1/2 -translate-y-1/2 right-3 z-[1000] flex flex-col gap-3"
+  searchClassName = "absolute top-6 z-[1100] left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-[500px]",
+  controlsClassName = "absolute top-1/2 -translate-y-1/2 right-3 z-[1100] flex flex-col gap-3"
 }) {
   const [internalIsFullscreen, setInternalIsFullscreen] = useState(false);
   const containerRef = useRef(null);

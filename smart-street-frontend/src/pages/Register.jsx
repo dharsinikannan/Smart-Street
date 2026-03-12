@@ -44,7 +44,7 @@ export default function Register() {
   const navigate = useNavigate();
   const { register, loading, error } = useAuth();
   const { t } = useTranslation();
-  const [activeRole, setActiveRole] = useState("VENDOR");
+  const [activeRole, setActiveRole] = useState("USER");
   const [focusedField, setFocusedField] = useState(null);
 
   const [form, setForm] = useState({
@@ -52,7 +52,7 @@ export default function Register() {
     email: "",
     password: "",
     phone: "",
-    role: "VENDOR",
+    role: "USER",
     businessName: "",
     category: "",
     licenseNumber: "",
@@ -154,8 +154,9 @@ export default function Register() {
             </div>
 
             {/* Role Selection Tabs */}
-            <div className="flex bg-white dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-8">
+            <div className="flex bg-white dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-8 overflow-x-auto scrollbar-hide">
               {[
+                { id: "USER", label: "Citizen", icon: UserIcon },
                 { id: "VENDOR", label: t("vendor_role"), icon: BuildingStorefrontIcon },
                 { id: "OWNER", label: t("space_owner_role"), icon: KeyIcon },
                 { id: "ADMIN", label: t("admin_role"), icon: LockClosedIcon }
@@ -164,13 +165,13 @@ export default function Register() {
                   type="button"
                   key={role.id}
                   onClick={() => handleRoleChange(role.id)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ${activeRole === role.id
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 min-w-fit ${activeRole === role.id
                     ? "bg-slate-900 dark:bg-cyan-600 text-white shadow-md shadow-slate-900/10 dark:shadow-cyan-900/20"
                     : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50"
                     }`}
                 >
                   <role.icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="hidden sm:inline">{role.label}</span>
+                  <span className="whitespace-nowrap">{role.label}</span>
                 </button>
               ))}
             </div>

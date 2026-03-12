@@ -15,10 +15,11 @@ export default function PublicSidebar({
   categories,
   onVendorClick,
   loading,
-  congestion = []
+  congestion = [],
+  isOpen,
+  setIsOpen
 }) {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(true);
 
   const [selectedVendorDetail, setSelectedVendorDetail] = useState(null);
 
@@ -93,7 +94,7 @@ export default function PublicSidebar({
                      onClick={() => setSelectedCategory(cat)}
                      className={`flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
                        selectedCategory === cat 
-                       ? "bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-md shadow-cyan-200 dark:shadow-cyan-900/20" 
+                       ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md transform scale-105" 
                        : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50"
                      }`}
                    >
@@ -132,13 +133,40 @@ export default function PublicSidebar({
                
                <div className="pt-12 px-6 pb-6 space-y-6">
                  <div>
-                   <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{selectedVendorDetail.business_name}</h2>
+                   <div className="flex items-center gap-2">
+                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{selectedVendorDetail.business_name}</h2>
+                     <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full text-[10px] font-bold border border-green-200 dark:border-green-800/50 flex-shrink-0">
+                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                       Verified
+                     </div>
+                   </div>
                    <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
                      <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-md font-medium text-xs uppercase tracking-wide">{selectedVendorDetail.category}</span>
                      <span>•</span>
                      <span className="flex items-center gap-1"><MapPinIcon className="w-4 h-4" /> {selectedVendorDetail.address}</span>
                    </p>
                  </div>
+
+                  {/* Menu & Pricing Section */}
+                  {selectedVendorDetail.menu_items?.length > 0 && (
+                    <div className="bg-slate-50 dark:bg-slate-950/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[10px]">Vendor Menu</h3>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">{selectedVendorDetail.menu_items.length} Items</span>
+                      </div>
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-2 scrollbar-hide">
+                        {selectedVendorDetail.menu_items.map((item, index) => {
+                          const isHighlighted = searchQuery && item.name?.toLowerCase().includes(searchQuery.toLowerCase());
+                          return (
+                            <div key={index} className={`flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800 last:border-0 ${isHighlighted ? 'bg-cyan-50 dark:bg-cyan-900/20 px-2 -mx-2 rounded-lg' : ''}`}>
+                              <span className={`text-sm ${isHighlighted ? 'font-bold text-cyan-700 dark:text-cyan-400' : 'text-slate-700 dark:text-slate-200'}`}>{item.name}</span>
+                              <span className="text-sm font-bold text-slate-900 dark:text-white">₹{item.price}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                  <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
                     <h3 className="font-bold text-slate-800 dark:text-white mb-4">{t('reviews')}</h3>
@@ -182,12 +210,12 @@ export default function PublicSidebar({
                  </div>
               ) : (
                 vendors.map(vendor => {
-                  const isOpenNow = isVendorOpen(vendor.start_time, vendor.end_time);
+                  const isOpenNow = isVendorOpen(vendor.start_time, vendor.end_time) && vendor.is_active;
                   return (
                     <div 
-                      key={vendor.request_id}
+                      key={vendor.vendor_id}
                       onClick={() => handleVendorClickInternal(vendor)}
-                      className="group bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer relative overflow-hidden"
+                      className={`group bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer relative overflow-hidden ${!vendor.is_active ? 'opacity-75' : ''}`}
                     >
                       <div className={`absolute top-0 left-0 w-1 h-full ${isOpenNow ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-700'}`} />
                       
@@ -198,34 +226,52 @@ export default function PublicSidebar({
                           </h3>
                           <div className="flex items-center gap-1 mt-0.5">
                             <StarSolid className="w-3 h-3 text-yellow-400" />
-                            <span className="font-bold text-xs text-slate-700 dark:text-slate-300">4.{Math.floor((vendor.vendor_id % 9)) + 1}</span>
-                            <span className="text-slate-400 text-xs">({(vendor.vendor_id % 40) + 10})</span>
+                            <span className="font-bold text-xs text-slate-700 dark:text-slate-300">4.{Math.floor((vendor.vendor_id[0]?.charCodeAt(0) % 9) || 5) + 1}</span>
+                            <span className="text-slate-400 text-xs">({(vendor.vendor_id[0]?.charCodeAt(0) % 40) + 10})</span>
                           </div>
                         </div>
-                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                          isOpenNow 
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
-                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                        }`}>
-                          {isOpenNow ? t('open') : t('closed')}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            isOpenNow 
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+                            : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                          }`}>
+                            {isOpenNow ? t('open') : t('closed')}
+                          </span>
+                          {!vendor.is_active && (
+                            <span className="text-[9px] text-red-500 font-bold uppercase p-0.5">Offline</span>
+                          )}
+                        </div>
                       </div>
                       
-                      <div className="pl-2 space-y-1.5">
+                      <div className="pl-2 space-y-2">
                         <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                          <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-medium uppercase tracking-wide">
+                          <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-[10px] font-medium uppercase tracking-wide">
                             {vendor.category}
                           </span>
                         </div>
+
+                        {vendor.menu_items?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {vendor.menu_items.slice(0, 2).map((item, idx) => (
+                              <span key={idx} className="bg-blue-50/50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded text-[10px] border border-blue-100/50 dark:border-blue-800/50">
+                                {item.name}
+                              </span>
+                            ))}
+                            {vendor.menu_items.length > 2 && <span className="text-[10px] text-slate-400">+{vendor.menu_items.length - 2}</span>}
+                          </div>
+                        )}
                         
                         <div className="flex items-start gap-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                           <MapPinIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                          <span className="line-clamp-1">{vendor.address}</span>
+                          <span className="line-clamp-1">{vendor.address || "No active location"}</span>
                         </div>
 
                        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                           <ClockIcon className="w-4 h-4" />
-                           {new Date(vendor.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(vendor.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          <span className="text-[10px] font-mono">
+                            {new Date(vendor.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(vendor.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </span>
                         </div>
                       </div>
                     </div>

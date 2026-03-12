@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import StarRating from './StarRating';
@@ -94,7 +95,7 @@ const ReviewList = ({ vendorId, onReviewAdded }) => {
         </form>
       ) : (
         <div className="text-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-          <p className="text-sm text-slate-500">Please <a href="/login" className="text-cyan-600 underline">login</a> to write a review.</p>
+          <p className="text-sm text-slate-500">Please <Link to="/login" className="text-cyan-600 underline">login</Link> or <Link to="/register" className="text-cyan-600 underline">sign up</Link> to write a review.</p>
         </div>
       )}
 
@@ -125,7 +126,17 @@ const ReviewList = ({ vendorId, onReviewAdded }) => {
                 <div className="flex items-center gap-2">
                   <UserCircleIcon className="w-8 h-8 text-slate-300" />
                   <div>
-                    <p className="text-sm font-bold text-slate-800 dark:text-white">{review.user_name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">{review.user_name}</p>
+                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
+                        review.user_role === 'ADMIN' ? 'bg-red-100 text-red-600' :
+                        review.user_role === 'VENDOR' ? 'bg-blue-100 text-blue-600' :
+                        review.user_role === 'OWNER' ? 'bg-amber-100 text-amber-600' :
+                        'bg-slate-100 text-slate-600'
+                      }`}>
+                        {review.user_role === 'USER' ? 'Citizen' : review.user_role}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2">
                        <StarRating rating={review.rating} readOnly size="w-3 h-3" />
                        <span className="text-xs text-slate-400">{new Date(review.created_at).toLocaleDateString()}</span>

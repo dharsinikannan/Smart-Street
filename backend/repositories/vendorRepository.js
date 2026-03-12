@@ -86,7 +86,7 @@ const toggleFavorite = async (vendorId, spaceId) => {
   }
 };
 
-const updateStorefront = async (vendorId, { businessName, category, stallPhoto, menuItems }) => {
+const updateStorefront = async (vendorId, { businessName, category, stallPhoto, menuItems, isActive, operatingHours }) => {
   const result = await db.query(
     `
     UPDATE vendors
@@ -94,11 +94,21 @@ const updateStorefront = async (vendorId, { businessName, category, stallPhoto, 
       business_name = COALESCE($2, business_name),
       category = COALESCE($3, category),
       stall_photo = COALESCE($4, stall_photo),
-      menu_items = COALESCE($5, menu_items)
+      menu_items = COALESCE($5, menu_items),
+      is_active = COALESCE($6, is_active),
+      operating_hours = COALESCE($7, operating_hours)
     WHERE vendor_id = $1
     RETURNING *
     `,
-    [vendorId, businessName, category, stallPhoto, JSON.stringify(menuItems)]
+    [
+      vendorId, 
+      businessName, 
+      category, 
+      stallPhoto, 
+      menuItems ? JSON.stringify(menuItems) : null,
+      isActive,
+      operatingHours ? JSON.stringify(operatingHours) : null
+    ]
   );
   return result.rows[0];
 };

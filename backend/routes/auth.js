@@ -13,7 +13,7 @@ router.post(
     body("name").trim().notEmpty().withMessage("name is required"),
     body("email").isEmail().withMessage("valid email required"),
     body("password").isLength({ min: 8 }).withMessage("password must be at least 8 characters"),
-    body("role").isIn(["VENDOR", "OWNER", "ADMIN"]).withMessage("role must be VENDOR, OWNER, or ADMIN"),
+    body("role").isIn(["VENDOR", "OWNER", "ADMIN", "USER"]).withMessage("role must be VENDOR, OWNER, ADMIN, or USER"),
     body("phone").optional().isString()
   ],
   validateRequest,

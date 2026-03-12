@@ -1,5 +1,5 @@
 import { useMap } from "react-leaflet";
-import { PlusIcon, MinusIcon, ArrowsPointingOutIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, MinusIcon, ArrowsPointingOutIcon, XMarkIcon, Square3Stack3DIcon } from "@heroicons/react/24/outline";
 import { MapPinIcon } from "@heroicons/react/24/solid";
 
 export default function MapZoomLocationControls({
@@ -106,10 +106,7 @@ export default function MapZoomLocationControls({
             }`}
           title={mapStyle === "street" ? "Switch to Satellite" : "Switch to Street Map"}
         >
-          <div className={`w-8 h-8 rounded-full transition-all duration-300 border border-slate-200 dark:border-slate-700 ${mapStyle === 'street'
-            ? 'bg-[url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/15/15000/10000")] bg-cover'
-            : 'bg-[url("https://a.tile.openstreetmap.org/15/15000/10000.png")] bg-cover'
-            }`}></div>
+          <Square3Stack3DIcon className={`h-6 w-6 transition-all duration-300 ${mapStyle === 'satellite' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-200'}`} />
         </button>
       </div>
     </div>

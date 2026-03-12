@@ -46,7 +46,7 @@ exports.getVendorReviews = async (req, res) => {
 
   try {
     const reviewsResult = await db.query(
-      `SELECT r.review_id, r.rating, r.comment, r.created_at, u.name as user_name
+      `SELECT r.review_id, r.rating, r.comment, r.created_at, u.name as user_name, u.role as user_role
        FROM reviews r
        JOIN users u ON r.user_id = u.user_id
        WHERE r.vendor_id = $1

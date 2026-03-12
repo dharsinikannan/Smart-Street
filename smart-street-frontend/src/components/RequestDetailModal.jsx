@@ -249,7 +249,8 @@ export default function RequestDetailModal({ isOpen, onClose, request, onViewHig
                       <div>
                         <p className="text-sm text-slate-500">Requested Area</p>
                         <p className="text-base font-medium text-slate-700 dark:text-slate-300">
-                          {request.max_width}m × {request.max_length}m
+                          Radius: {Math.round(Math.sqrt((request.max_width**2 + request.max_length**2))/2)}m
+                          <span className="block text-xs text-slate-400 font-normal">Approx Area: {Math.round(request.max_width * request.max_length)}m²</span>
                         </p>
                       </div>
                     </div>
