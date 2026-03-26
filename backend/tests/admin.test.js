@@ -52,7 +52,7 @@ describe('Admin Endpoints', () => {
     const end = new Date(Date.now() + 103600000).toISOString();
     
     const reqRes = await request(app).post('/api/vendor/requests').set('Authorization', `Bearer ${vendorToken}`).send({
-      spaceId: spaceId, lat: 34.0001, lng: -118.0001, maxWidth: 2, maxLength: 2, startTime: start, endTime: end
+      spaceId: null, lat: 34.0001, lng: -118.0001, maxWidth: 2, maxLength: 2, startTime: start, endTime: end
     });
     
     // We need requestId. Usually returned in response or we list requests.

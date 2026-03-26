@@ -38,14 +38,14 @@ export default function MapSearchControl({
       setLoading(true);
       setError(null);
       try {
-        const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`;
+        const url = `https://nominatim.openstreetmap.org/search?format=geojson&q=${encodeURIComponent(query)}&limit=5`;
         const res = await fetch(url, { headers: { "Accept-Language": "en" } });
         const data = await res.json();
         const feats = data?.features || [];
         const mapped = feats.map(f => {
           const [lon, lat] = f.geometry?.coordinates || [];
           const props = f.properties || {};
-          const label = [props.name, props.city, props.state, props.country].filter(Boolean).join(", ");
+          const label = props.display_name || props.name || "Unknown Location";
           return { lat, lon, label };
         }).filter(s => s.lat != null && s.lon != null && s.label);
         setSuggestions(mapped);
